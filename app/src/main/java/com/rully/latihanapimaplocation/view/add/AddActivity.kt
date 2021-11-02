@@ -1,4 +1,4 @@
-package com.rully.latihanapimaplocation
+package com.rully.latihanapimaplocation.view.add
 
 import android.Manifest
 import android.app.Activity
@@ -26,6 +26,7 @@ import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
+import com.rully.latihanapimaplocation.R
 import com.rully.latihanapimaplocation.databinding.ActivityAddBinding
 import java.io.File
 import java.io.FileOutputStream
