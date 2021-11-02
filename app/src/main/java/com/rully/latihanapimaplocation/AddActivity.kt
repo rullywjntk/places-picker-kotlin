@@ -1,16 +1,20 @@
 package com.rully.latihanapimaplocation
 
 import android.Manifest
+import android.app.Activity
 import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.provider.Settings
 import android.view.View
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.bumptech.glide.Glide
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
@@ -25,6 +29,16 @@ class AddActivity : AppCompatActivity(), View.OnClickListener {
     private lateinit var binding: ActivityAddBinding
     private val calendar = Calendar.getInstance()
     private lateinit var dateSetListener: DatePickerDialog.OnDateSetListener
+
+    val resultLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == Activity.RESULT_OK) {
+                val data: Intent? = it.data
+                Glide.with(applicationContext)
+                    .load(data?.data)
+                    .into(binding.ivLocation)
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -81,11 +95,9 @@ class AddActivity : AppCompatActivity(), View.OnClickListener {
         ).withListener(object : MultiplePermissionsListener {
             override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
                 if (report?.areAllPermissionsGranted() == true) {
-                    Toast.makeText(
-                        this@AddActivity,
-                        "Storage permission are granted",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    val galleryIntent =
+                        Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                    resultLauncher.launch(galleryIntent)
                 }
             }
 
@@ -97,6 +109,7 @@ class AddActivity : AppCompatActivity(), View.OnClickListener {
             }
         }).onSameThread().check()
     }
+
 
     private fun showRationalDialogPermissions() {
         AlertDialog.Builder(this)
