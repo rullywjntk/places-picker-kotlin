@@ -14,12 +14,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.LatihanAPIMapLocation">
         <activity
-            android:name=".AddActivity"
+            android:name=".view.add.AddActivity"
             android:exported="true"
             android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
             android:screenOrientation="portrait"/>
         <activity
-            android:name=".MainActivity"
+            android:name=".view.main.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
