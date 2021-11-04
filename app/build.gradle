@@ -58,4 +58,9 @@ dependencies {
     kapt 'androidx.room:room-compiler:2.3.0'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.4.0'
 
+    implementation 'com.makeramen:roundedimageview:2.3.0'
+
+    debugImplementation 'com.amitshekhar.android:debug-db:1.0.6'
+
+
 }
