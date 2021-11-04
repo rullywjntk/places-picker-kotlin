@@ -4,24 +4,28 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#FF1B0A"
+    android:padding="16dp"
     tools:context=".view.main.MainActivity">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvData"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone"
-        tools:visibility="visible"/>
+        android:clipToPadding="false"
+        android:paddingBottom="15dp"
+        tools:visibility="visible"
+        tools:listitem="@layout/list_place"/>
     
     <TextView
         android:id="@+id/tvData"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:gravity="center"
         android:text="@string/note_text_no_happy_places_found_yet_kindly_add_one"
         android:textSize="16sp"
-        android:visibility="visible"
-        tools:visibility="visible"/>
+        android:visibility="gone"
+        tools:visibility="gone"/>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAdd"

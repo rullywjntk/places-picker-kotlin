@@ -49,8 +49,8 @@ class AddActivity : AppCompatActivity(), View.OnClickListener {
     private var place: Place? = null
     private lateinit var dbHelper: DatabaseHelper
 
-    private val mLat: Double = 0.0
-    private val mLon: Double = 0.0
+    private var mLat: Double = 0.0
+    private var mLon: Double = 0.0
 
     @RequiresApi(Build.VERSION_CODES.P)
     val resultLauncher =
@@ -150,10 +150,10 @@ class AddActivity : AppCompatActivity(), View.OnClickListener {
                 }.show()
             }
             R.id.btnSave -> {
-                val title = binding?.etTitle?.text.toString()
-                val desc = binding?.etDesc?.text.toString()
-                val location = binding?.etLocation?.text.toString()
-                val date = binding?.etDate?.text.toString()
+                val title = binding?.etTitle?.text.toString().trim()
+                val desc = binding?.etDesc?.text.toString().trim()
+                val location = binding?.etLocation?.text.toString().trim()
+                val date = binding?.etDate?.text.toString().trim()
                 when {
                     title.isEmpty() -> {
                         showMessage("Field is required")
@@ -165,16 +165,18 @@ class AddActivity : AppCompatActivity(), View.OnClickListener {
                         showMessage("Please select image")
                     }
                     else -> {
-                        place.let { place ->
-                            place?.title = title
-                            place?.image = saveImage?.toString()
-                            place?.description = desc
-                            place?.location = location
-                            place?.date = date
-                            place?.latitude = mLat
-                            place?.longitude = mLon
-                        }
-                        place?.let { dbHelper.insert(it) }
+                        place = Place(0,title,saveImage.toString(),desc,date,location,mLat,mLon)
+                        dbHelper.insert(place!!)
+//                        place.let { place ->
+//                            place?.title = title
+////                            place?.image = saveImage?.toString()
+////                            place?.description = desc
+////                            place?.location = location
+////                            place?.date = date
+////                            place?.latitude = mLat
+////                            place?.longitude = mLon
+//                        }
+//                        dbHelper.insert(place as Place)
                         showMessage("Added place successfully")
                         finish()
                     }
