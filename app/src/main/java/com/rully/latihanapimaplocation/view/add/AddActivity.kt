@@ -17,6 +17,7 @@ import android.provider.MediaStore
 import android.provider.Settings
 import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -27,7 +28,9 @@ import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 import com.rully.latihanapimaplocation.R
+import com.rully.latihanapimaplocation.data.Place
 import com.rully.latihanapimaplocation.databinding.ActivityAddBinding
+import com.rully.latihanapimaplocation.helper.DatabaseHelper
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -37,9 +40,17 @@ import java.util.*
 
 class AddActivity : AppCompatActivity(), View.OnClickListener {
 
-    private lateinit var binding: ActivityAddBinding
+    private var _binding: ActivityAddBinding? = null
+    private val binding get() = _binding
+
     private val calendar = Calendar.getInstance()
     private lateinit var dateSetListener: DatePickerDialog.OnDateSetListener
+    private var saveImage: Uri? = null
+    private var place: Place? = null
+    private lateinit var dbHelper: DatabaseHelper
+
+    private val mLat: Double = 0.0
+    private val mLon: Double = 0.0
 
     @RequiresApi(Build.VERSION_CODES.P)
     val resultLauncher =
@@ -51,14 +62,16 @@ class AddActivity : AppCompatActivity(), View.OnClickListener {
                     contentUri?.let { it1 -> ImageDecoder.createSource(this.contentResolver, it1) }
                 val bitmap = source?.let { it1 -> ImageDecoder.decodeBitmap(it1) }
                 if (bitmap != null) {
-                    saveImage(bitmap)
-                    Log.e("Save image: ", "Path : ${saveImage(bitmap)}")
+                    saveImage = saveImage(bitmap)
+                    Log.e("Save image: ", "Path : $saveImage")
                 }
 
-                Glide.with(applicationContext)
-                    .load(data?.data)
-                    .centerCrop()
-                    .into(binding.ivLocation)
+                binding?.ivLocation?.let { image ->
+                    Glide.with(applicationContext)
+                        .load(data?.data)
+                        .centerCrop()
+                        .into(image)
+                }
             }
         }
 
@@ -70,11 +83,13 @@ class AddActivity : AppCompatActivity(), View.OnClickListener {
                     try {
                         val bitmap = data?.extras?.get("data") as Bitmap
                         Log.d("MyLogTag", "photo: $bitmap")
-                        saveImage(bitmap)
-                        Log.e("Save image: ", "Path : ${saveImage(bitmap)}")
-                        Glide.with(applicationContext)
-                            .load(bitmap)
-                            .into(binding.ivLocation)
+                        saveImage = saveImage(bitmap)
+                        Log.e("Save image: ", "Path : $saveImage")
+                        binding?.ivLocation?.let {
+                            Glide.with(applicationContext)
+                                .load(bitmap)
+                                .into(it)
+                        }
 
                     } catch (e: IOException) {
                         e.printStackTrace()
@@ -86,15 +101,17 @@ class AddActivity : AppCompatActivity(), View.OnClickListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityAddBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        setSupportActionBar(binding.toolbar)
+        _binding = ActivityAddBinding.inflate(layoutInflater)
+        setContentView(binding?.root)
+        setSupportActionBar(binding?.toolbar)
         supportActionBar?.title = "Add Places"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        binding.toolbar.setNavigationOnClickListener {
+        binding?.toolbar?.setNavigationOnClickListener {
             onBackPressed()
         }
+
+        dbHelper = DatabaseHelper(this)
 
         dateSetListener = DatePickerDialog.OnDateSetListener { _, year, month, dayOfMonth ->
             calendar.set(Calendar.YEAR, year)
@@ -102,8 +119,11 @@ class AddActivity : AppCompatActivity(), View.OnClickListener {
             calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
             showDate()
         }
-        binding.etDate.setOnClickListener(this)
-        binding.tvAddImage.setOnClickListener(this)
+        showDate()
+
+        binding?.etDate?.setOnClickListener(this)
+        binding?.addImage?.setOnClickListener(this)
+        binding?.btnSave?.setOnClickListener(this)
     }
 
     override fun onClick(p0: View?) {
@@ -117,7 +137,7 @@ class AddActivity : AppCompatActivity(), View.OnClickListener {
                     calendar.get(Calendar.DAY_OF_MONTH)
                 ).show()
             }
-            R.id.tvAddImage -> {
+            R.id.addImage -> {
                 val imageDialog = AlertDialog.Builder(this)
                 imageDialog.setTitle("Select Action")
                 val imageDialogItems =
@@ -128,6 +148,37 @@ class AddActivity : AppCompatActivity(), View.OnClickListener {
                         1 -> selectPhotoFromCamera()
                     }
                 }.show()
+            }
+            R.id.btnSave -> {
+                val title = binding?.etTitle?.text.toString()
+                val desc = binding?.etDesc?.text.toString()
+                val location = binding?.etLocation?.text.toString()
+                val date = binding?.etDate?.text.toString()
+                when {
+                    title.isEmpty() -> {
+                        showMessage("Field is required")
+                    }
+                    location.isEmpty() -> {
+                        showMessage("Field is required")
+                    }
+                    saveImage == null -> {
+                        showMessage("Please select image")
+                    }
+                    else -> {
+                        place.let { place ->
+                            place?.title = title
+                            place?.image = saveImage?.toString()
+                            place?.description = desc
+                            place?.location = location
+                            place?.date = date
+                            place?.latitude = mLat
+                            place?.longitude = mLon
+                        }
+                        place?.let { dbHelper.insert(it) }
+                        showMessage("Added place successfully")
+                        finish()
+                    }
+                }
             }
         }
     }
@@ -200,7 +251,11 @@ class AddActivity : AppCompatActivity(), View.OnClickListener {
     private fun showDate() {
         val formatDate = "dd.MM.yyyy"
         val sdf = SimpleDateFormat(formatDate, Locale.getDefault())
-        binding.etDate.setText(sdf.format(calendar.time).toString())
+        binding?.etDate?.setText(sdf.format(calendar.time).toString())
+    }
+
+    private fun showMessage(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
     private fun saveImage(bitmap: Bitmap): Uri {
@@ -218,6 +273,11 @@ class AddActivity : AppCompatActivity(), View.OnClickListener {
         }
 
         return Uri.parse(file.absolutePath)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
     }
 
     companion object {

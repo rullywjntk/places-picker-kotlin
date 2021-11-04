@@ -11,26 +11,26 @@ import kotlinx.parcelize.Parcelize
 data class Place(
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id")
-    val id: Int,
+    val id: Int = 0,
 
     @ColumnInfo(name = "title")
-    val title: String,
+    var title: String? = null,
 
     @ColumnInfo(name = "image")
-    val image: String,
+    var image: String? = null,
 
     @ColumnInfo(name = "description")
-    val description: String,
+    var description: String? = null,
 
     @ColumnInfo(name = "date")
-    val date: String,
+    var date: String? = null,
 
     @ColumnInfo(name = "location")
-    val location: String,
+    var location: String? = null,
 
     @ColumnInfo(name = "latitude")
-    val latitude: Double,
+    var latitude: Double = 0.0,
 
     @ColumnInfo(name = "longitude")
-    val longitude: Double
+    var longitude: Double = 0.0
 ) : Parcelable
