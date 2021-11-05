@@ -9,7 +9,8 @@
         android:layout_height="wrap_content"
         app:cardCornerRadius="12dp"
         android:layout_marginStart="10dp"
-        android:layout_marginEnd="5dp">
+        android:layout_marginEnd="5dp"
+        android:layout_marginBottom="15dp">
 
         <com.makeramen.roundedimageview.RoundedImageView
             android:id="@+id/roundedImageItem"
@@ -22,6 +23,5 @@
         </com.makeramen.roundedimageview.RoundedImageView>
 
     </androidx.cardview.widget.CardView>
-
 
 </LinearLayout>

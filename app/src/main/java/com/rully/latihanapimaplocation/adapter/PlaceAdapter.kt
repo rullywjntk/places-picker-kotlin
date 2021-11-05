@@ -12,14 +12,23 @@ class PlaceAdapter: RecyclerView.Adapter<PlaceAdapter.ViewHolder>() {
 
     private val listPlaces = ArrayList<Place>()
 
+    private lateinit var onItemClickCallback: OnItemClickCallback
+
     fun setList(listPlace: List<Place>) {
         listPlaces.clear()
         listPlaces.addAll(listPlace)
         notifyDataSetChanged()
     }
 
+    fun setOnItemClickCallback(onItemClickCallback: OnItemClickCallback) {
+        this.onItemClickCallback = onItemClickCallback
+    }
+
     inner class ViewHolder(private val binding: ListPlaceBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(place: Place) {
+            binding.root.setOnClickListener {
+                onItemClickCallback.onItemClicked(place)
+            }
             binding.apply {
                 Glide.with(itemView)
                     .load(place.image)
@@ -39,4 +48,8 @@ class PlaceAdapter: RecyclerView.Adapter<PlaceAdapter.ViewHolder>() {
     }
 
     override fun getItemCount(): Int = listPlaces.size
+
+    interface OnItemClickCallback {
+        fun onItemClicked(data: Place)
+    }
 }
