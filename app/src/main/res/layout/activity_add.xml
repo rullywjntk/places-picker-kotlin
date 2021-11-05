@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".view.add.AddActivity">
+    android:background="#039BE5"
+    tools:context=".view.add.PlaceActivity">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
@@ -28,20 +29,47 @@
             android:layout_height="wrap_content"
             android:padding="16dp">
 
+            <TextView
+                android:id="@+id/tvLocation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:text="@string/your_location"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                app:drawableStartCompat="@drawable/ic_arrow_down"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/tvActualLoc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:textColor="@color/white"
+                android:layout_marginStart="24dp"
+                android:text="@string/current_location"
+                app:layout_constraintTop_toBottomOf="@id/tvLocation"
+                app:layout_constraintStart_toStartOf="parent"/>
+
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tiTitle"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:hint="@string/title"
+                android:background="@drawable/bg_edit_text"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
+                app:layout_constraintTop_toBottomOf="@id/tvActualLoc">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/title"
+                    android:background="@drawable/bg_edit_text"
                     android:inputType="textCapWords"
                     android:textSize="16sp" />
 
@@ -52,7 +80,8 @@
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
+                android:layout_marginTop="15dp"
+                android:background="@drawable/bg_edit_text"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/tiTitle">
@@ -61,6 +90,7 @@
                     android:id="@+id/etDesc"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:background="@drawable/bg_edit_text"
                     android:hint="@string/description"
                     android:inputType="textCapSentences"
                     android:textSize="16sp" />
@@ -72,7 +102,8 @@
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
+                android:layout_marginTop="15dp"
+                android:background="@drawable/bg_edit_text"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/tiDesc">
@@ -81,6 +112,7 @@
                     android:id="@+id/etDate"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:background="@drawable/bg_edit_text"
                     android:focusable="false"
                     android:focusableInTouchMode="false"
                     android:hint="@string/date"
@@ -89,46 +121,11 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tiLocation"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tiDate">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etLocation"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/location"
-                    android:inputType="text"
-                    android:textSize="16sp" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <TextView
-                android:id="@+id/tvSelectLoc"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:background="@drawable/bg_select_location"
-                android:foreground="?attr/selectableItemBackground"
-                android:gravity="center"
-                android:padding="10dp"
-                android:text="@string/add_place_select_current_location_text"
-                android:textSize="16sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tiLocation" />
-
             <FrameLayout
                 android:id="@+id/frameLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@id/tvSelectLoc">
+                app:layout_constraintTop_toBottomOf="@id/tiDate">
 
                 <androidx.appcompat.widget.AppCompatImageView
                     android:id="@+id/ivLocation"
@@ -139,31 +136,25 @@
                     android:background="@drawable/bg_select_location"
                     android:padding="2dp"
                     android:scaleType="centerCrop"
-                    android:src="@drawable/add_screen_image_placeholder"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintHorizontal_bias="0.0"
-                    app:layout_constraintTop_toBottomOf="@id/tvSelectLoc"/>
+                    android:src="@drawable/add_screen_image_placeholder" />
 
                 <ImageButton
                     android:id="@+id/addImage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:src="@drawable/ic_camera"
+                    android:layout_gravity="bottom|end"
                     android:background="@android:color/transparent"
                     android:padding="10dp"
-                    android:layout_gravity="bottom|end"/>
+                    android:src="@drawable/ic_camera" />
 
             </FrameLayout>
-            
-
 
             <Button
                 android:id="@+id/btnSave"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="15dp"
                 android:background="@drawable/bg_button"
                 android:gravity="center"
                 android:paddingTop="10dp"

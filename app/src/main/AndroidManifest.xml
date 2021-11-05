@@ -20,7 +20,7 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"  />
         <activity
-            android:name=".view.add.AddActivity"
+            android:name=".view.add.PlaceActivity"
             android:exported="true"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />

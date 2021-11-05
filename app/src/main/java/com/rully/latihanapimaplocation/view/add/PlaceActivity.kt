@@ -31,6 +31,7 @@ import com.rully.latihanapimaplocation.R
 import com.rully.latihanapimaplocation.data.Place
 import com.rully.latihanapimaplocation.databinding.ActivityAddBinding
 import com.rully.latihanapimaplocation.helper.DatabaseHelper
+import com.rully.latihanapimaplocation.view.detail.DetailActivity
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -38,10 +39,12 @@ import java.io.OutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 
-class AddActivity : AppCompatActivity(), View.OnClickListener {
+class PlaceActivity : AppCompatActivity(), View.OnClickListener {
 
     private var _binding: ActivityAddBinding? = null
     private val binding get() = _binding
+
+    private var isEdit = false
 
     private val calendar = Calendar.getInstance()
     private lateinit var dateSetListener: DatePickerDialog.OnDateSetListener
@@ -130,7 +133,7 @@ class AddActivity : AppCompatActivity(), View.OnClickListener {
         when (p0?.id) {
             R.id.etDate -> {
                 DatePickerDialog(
-                    this@AddActivity,
+                    this@PlaceActivity,
                     dateSetListener,
                     calendar.get(Calendar.YEAR),
                     calendar.get(Calendar.MONTH),
@@ -152,7 +155,7 @@ class AddActivity : AppCompatActivity(), View.OnClickListener {
             R.id.btnSave -> {
                 val title = binding?.etTitle?.text.toString().trim()
                 val desc = binding?.etDesc?.text.toString().trim()
-                val location = binding?.etLocation?.text.toString().trim()
+                val location = binding?.tvLocation?.text.toString().trim()
                 val date = binding?.etDate?.text.toString().trim()
                 when {
                     title.isEmpty() -> {
@@ -184,6 +187,7 @@ class AddActivity : AppCompatActivity(), View.OnClickListener {
             }
         }
     }
+
 
     private fun selectPhotoFromGallery() {
         Dexter.withActivity(this).withPermissions(

@@ -1,15 +1,15 @@
 package com.rully.latihanapimaplocation.view.main
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
-import com.amitshekhar.DebugDB
 import com.rully.latihanapimaplocation.adapter.PlaceAdapter
 import com.rully.latihanapimaplocation.data.Place
 import com.rully.latihanapimaplocation.databinding.ActivityMainBinding
 import com.rully.latihanapimaplocation.helper.DatabaseHelper
-import com.rully.latihanapimaplocation.view.add.AddActivity
+import com.rully.latihanapimaplocation.view.add.PlaceActivity
 import com.rully.latihanapimaplocation.view.detail.DetailActivity
 
 class MainActivity : AppCompatActivity() {
@@ -23,30 +23,37 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        DebugDB.getAddressLog()
-
         dbHelper = DatabaseHelper(this)
-        dbHelper.getAll().observe(this, { listPlace ->
-            if (listPlace != null) {
-                adapter.setList(listPlace)
-            }
-        })
+
         adapter = PlaceAdapter()
+        getData()
+
         adapter.setOnItemClickCallback(object : PlaceAdapter.OnItemClickCallback {
             override fun onItemClicked(data: Place) {
                 showSelectedData(data)
             }
-
         })
+
+        binding.fabAdd.setOnClickListener {
+            startActivity(Intent(this, PlaceActivity::class.java))
+        }
+    }
+
+    private fun getData() {
+        dbHelper.getAll().observe(this, { listPlace ->
+            if (listPlace != null) {
+                binding.tvNoData.visibility = View.GONE
+                adapter.setList(listPlace)
+            } else {
+                binding.tvNoData.visibility = View.VISIBLE
+            }
+        })
+
         binding.rvData.isNestedScrollingEnabled = false
         binding.rvData.layoutManager =
             StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
         binding.rvData.setHasFixedSize(true)
         binding.rvData.adapter = adapter
-
-        binding.fabAdd.setOnClickListener {
-            startActivity(Intent(this, AddActivity::class.java))
-        }
     }
 
     private fun showSelectedData(data: Place) {

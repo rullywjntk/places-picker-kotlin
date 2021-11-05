@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FF1B0A"
+    android:background="#039BE5"
     android:padding="16dp"
     tools:context=".view.main.MainActivity">
 
@@ -18,7 +18,7 @@
         tools:listitem="@layout/list_place"/>
     
     <TextView
-        android:id="@+id/tvData"
+        android:id="@+id/tvNoData"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
