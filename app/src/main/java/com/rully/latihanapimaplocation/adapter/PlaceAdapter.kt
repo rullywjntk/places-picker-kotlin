@@ -1,5 +1,6 @@
 package com.rully.latihanapimaplocation.adapter
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -7,6 +8,7 @@ import com.bumptech.glide.Glide
 import com.rully.latihanapimaplocation.R
 import com.rully.latihanapimaplocation.data.Place
 import com.rully.latihanapimaplocation.databinding.ListPlaceBinding
+import com.rully.latihanapimaplocation.helper.DatabaseHelper
 
 class PlaceAdapter: RecyclerView.Adapter<PlaceAdapter.ViewHolder>() {
 

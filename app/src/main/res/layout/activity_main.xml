@@ -8,24 +8,24 @@
     android:padding="16dp"
     tools:context=".view.main.MainActivity">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvData"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:paddingBottom="15dp"
-        tools:visibility="visible"
-        tools:listitem="@layout/list_place"/>
-    
     <TextView
         android:id="@+id/tvNoData"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
+        android:gravity="center_horizontal"
+        android:layout_gravity="center_vertical"
         android:text="@string/note_text_no_happy_places_found_yet_kindly_add_one"
         android:textSize="16sp"
-        android:visibility="gone"
-        tools:visibility="gone"/>
+        android:textColor="@color/white"
+        android:visibility="gone"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvData"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:paddingBottom="15dp"
+        tools:listitem="@layout/list_place"/>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAdd"
