@@ -11,7 +11,9 @@
         <entry key="..\:/Android/AndroidStudioProjects/LatihanAPIMapLocation/app/src/main/res/layout/activity_add.xml" value="0.33" />
         <entry key="..\:/Android/AndroidStudioProjects/LatihanAPIMapLocation/app/src/main/res/layout/activity_detail.xml" value="0.25" />
         <entry key="..\:/Android/AndroidStudioProjects/LatihanAPIMapLocation/app/src/main/res/layout/activity_main.xml" value="0.25" />
+        <entry key="..\:/Android/AndroidStudioProjects/LatihanAPIMapLocation/app/src/main/res/layout/activity_map.xml" value="0.22" />
         <entry key="..\:/Android/AndroidStudioProjects/LatihanAPIMapLocation/app/src/main/res/layout/bottom_sheet_content.xml" value="0.25" />
+        <entry key="..\:/Android/AndroidStudioProjects/LatihanAPIMapLocation/app/src/main/res/layout/fragment_maps.xml" value="0.25" />
         <entry key="..\:/Android/AndroidStudioProjects/LatihanAPIMapLocation/app/src/main/res/layout/list_place.xml" value="0.22135416666666666" />
       </map>
     </option>

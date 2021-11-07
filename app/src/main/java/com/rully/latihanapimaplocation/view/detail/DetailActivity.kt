@@ -15,6 +15,7 @@ import com.rully.latihanapimaplocation.data.Place
 import com.rully.latihanapimaplocation.databinding.ActivityDetailBinding
 import com.rully.latihanapimaplocation.helper.DatabaseHelper
 import com.rully.latihanapimaplocation.view.add.PlaceActivity
+import com.rully.latihanapimaplocation.view.map.MapActivity
 
 class DetailActivity : AppCompatActivity(), View.OnClickListener {
 
@@ -40,6 +41,7 @@ class DetailActivity : AppCompatActivity(), View.OnClickListener {
 
         getDetailData()
         binding.ibSend.setOnClickListener(this)
+        binding.btnMap.setOnClickListener(this)
 
     }
 
@@ -52,6 +54,11 @@ class DetailActivity : AppCompatActivity(), View.OnClickListener {
                 intent.type = "image/jpg"
                 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 startActivity(Intent.createChooser(intent, "Share images"))
+            }
+            R.id.btnMap -> {
+                val intent = Intent(this, MapActivity::class.java)
+                intent.putExtra(EXTRA_PLACE, place)
+                startActivity(intent)
             }
         }
     }

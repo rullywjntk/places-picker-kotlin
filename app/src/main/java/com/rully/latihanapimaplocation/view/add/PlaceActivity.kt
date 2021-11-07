@@ -22,11 +22,16 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.Places.initialize
+import com.google.android.libraries.places.widget.Autocomplete
+import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
+import com.rully.latihanapimaplocation.BuildConfig
 import com.rully.latihanapimaplocation.R
 import com.rully.latihanapimaplocation.data.Place
 import com.rully.latihanapimaplocation.databinding.ActivityAddBinding
@@ -41,8 +46,7 @@ import java.util.*
 
 class PlaceActivity : AppCompatActivity(), View.OnClickListener {
 
-    private var _binding: ActivityAddBinding? = null
-    private val binding get() = _binding
+    private lateinit var binding: ActivityAddBinding
 
     private var isEdit = false
 
@@ -69,7 +73,7 @@ class PlaceActivity : AppCompatActivity(), View.OnClickListener {
                     Log.e("Save image: ", "Path : $saveImage")
                 }
 
-                binding?.ivImage?.let { image ->
+                binding.ivImage.let { image ->
                     Glide.with(applicationContext)
                         .load(data?.data)
                         .centerCrop()
@@ -88,7 +92,7 @@ class PlaceActivity : AppCompatActivity(), View.OnClickListener {
                         Log.d("MyLogTag", "photo: $bitmap")
                         saveImage = saveImage(bitmap)
                         Log.e("Save image: ", "Path : $saveImage")
-                        binding?.ivImage?.let {
+                        binding.ivImage.let {
                             Glide.with(applicationContext)
                                 .load(bitmap)
                                 .into(it)
@@ -101,17 +105,30 @@ class PlaceActivity : AppCompatActivity(), View.OnClickListener {
             }
         }
 
+    private val mapLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { map ->
+            if (map.resultCode == Activity.RESULT_OK) {
+                val place = Autocomplete.getPlaceFromIntent(map.data!!)
+                binding.tvActualLoc.text = place.address
+                mLat = place.latLng!!.latitude
+                mLon = place.latLng!!.longitude
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        _binding = ActivityAddBinding.inflate(layoutInflater)
-        setContentView(binding?.root)
-        setSupportActionBar(binding?.toolbar)
+        binding = ActivityAddBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.title = "Add Places"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        binding?.toolbar?.setNavigationOnClickListener {
+        binding.toolbar.setNavigationOnClickListener {
             onBackPressed()
+        }
+
+        if (!Places.isInitialized()) {
+            initialize(this, BuildConfig.GOOGLE_MAP_API_KEY)
         }
 
         dbHelper = DatabaseHelper(this)
@@ -125,9 +142,10 @@ class PlaceActivity : AppCompatActivity(), View.OnClickListener {
         }
         showDate()
 
-        binding?.etDate?.setOnClickListener(this)
-        binding?.addImage?.setOnClickListener(this)
-        binding?.btnSave?.setOnClickListener(this)
+        binding.etDate.setOnClickListener(this)
+        binding.addImage.setOnClickListener(this)
+        binding.btnSave.setOnClickListener(this)
+        binding.tvLocation.setOnClickListener(this)
 
     }
 
@@ -154,11 +172,52 @@ class PlaceActivity : AppCompatActivity(), View.OnClickListener {
                     }
                 }.show()
             }
+            R.id.tvLocation -> {
+                try {
+//                    val autoCompleteFragment =
+//                        supportFragmentManager.findFragmentById(R.id.map) as AutocompleteSupportFragment
+//                    autoCompleteFragment.setPlaceFields(
+//                        listOf(
+//                            com.google.android.libraries.places.api.model.Place.Field.ID,
+//                            com.google.android.libraries.places.api.model.Place.Field.NAME,
+//                            com.google.android.libraries.places.api.model.Place.Field.LAT_LNG,
+//                            com.google.android.libraries.places.api.model.Place.Field.ADDRESS
+//                        )
+//                    )
+//                    autoCompleteFragment.setOnPlaceSelectedListener(object :
+//                        PlaceSelectionListener {
+//                        override fun onError(p0: Status) {
+//                            Log.i(TAG, "An error occured: $p0")
+//                        }
+//
+//                        override fun onPlaceSelected(p0: com.google.android.libraries.places.api.model.Place) {
+//                            binding?.tvActualLoc?.text = p0.address
+//                            Log.i(TAG, "Place: ${p0.address}")
+//                            mLat = p0.latLng.latitude
+//                            mLon = p0.latLng.longitude
+//                        }
+//
+//                    })
+                    val fields = listOf(
+                        com.google.android.libraries.places.api.model.Place.Field.ID,
+                        com.google.android.libraries.places.api.model.Place.Field.NAME,
+                        com.google.android.libraries.places.api.model.Place.Field.LAT_LNG,
+                        com.google.android.libraries.places.api.model.Place.Field.ADDRESS
+                    )
+                    val intent =
+                        Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY, fields)
+                            .build(this)
+//                    startActivityForResult(intent, MAP_REQUEST_CODE)
+                    mapLauncher.launch(intent)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
             R.id.btnSave -> {
-                val title = binding?.etTitle?.text.toString().trim()
-                val desc = binding?.etDesc?.text.toString().trim()
-                val location = binding?.tvLocation?.text.toString().trim()
-                val date = binding?.etDate?.text.toString().trim()
+                val title = binding.etTitle.text.toString().trim()
+                val desc = binding.etDesc.text.toString().trim()
+                val location = binding.tvLocation.text.toString().trim()
+                val date = binding.etDate.text.toString().trim()
                 when {
                     title.isEmpty() -> {
                         showMessage("Field is required")
@@ -196,6 +255,18 @@ class PlaceActivity : AppCompatActivity(), View.OnClickListener {
         }
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == Activity.RESULT_OK) {
+            if (requestCode == MAP_REQUEST_CODE) {
+                val place = Autocomplete.getPlaceFromIntent(data!!)
+                binding.tvActualLoc.text = place.address
+                mLat = place.latLng!!.latitude
+                mLon = place.latLng!!.longitude
+            }
+        }
+    }
+
     private fun editData() {
         place = intent.getParcelableExtra(EXTRA_PLACE)
         if (place != null) {
@@ -207,15 +278,15 @@ class PlaceActivity : AppCompatActivity(), View.OnClickListener {
         if (isEdit) {
             if (place != null) {
                 place?.let { place ->
-                    binding?.etTitle?.setText(place.title)
-                    binding?.tvActualLoc?.text = place.location
-                    binding?.ivImage?.let {
+                    binding.etTitle.setText(place.title)
+                    binding.tvActualLoc.text = place.location
+                    binding.ivImage.let {
                         Glide.with(this)
                             .load(place.image)
                             .into(it)
                     }
-                    binding?.etDate?.setText(place.date)
-                    binding?.etDesc?.setText(place.description)
+                    binding.etDate.setText(place.date)
+                    binding.etDesc.setText(place.description)
                 }
             }
         }
@@ -290,7 +361,7 @@ class PlaceActivity : AppCompatActivity(), View.OnClickListener {
     private fun showDate() {
         val formatDate = "dd.MM.yyyy"
         val sdf = SimpleDateFormat(formatDate, Locale.getDefault())
-        binding?.etDate?.setText(sdf.format(calendar.time).toString())
+        binding.etDate.setText(sdf.format(calendar.time).toString())
     }
 
     private fun showMessage(message: String) {
@@ -314,13 +385,10 @@ class PlaceActivity : AppCompatActivity(), View.OnClickListener {
         return Uri.parse(file.absolutePath)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        _binding = null
-    }
-
     companion object {
+        const val TAG = "place_activity"
         const val SAVE_DIRECTORY = "save_image"
         const val EXTRA_PLACE = "extra_place"
+        const val MAP_REQUEST_CODE = 1
     }
 }
