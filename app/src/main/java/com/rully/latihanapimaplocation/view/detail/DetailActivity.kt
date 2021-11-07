@@ -1,7 +1,9 @@
 package com.rully.latihanapimaplocation.view.detail
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.view.View
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -14,10 +16,11 @@ import com.rully.latihanapimaplocation.databinding.ActivityDetailBinding
 import com.rully.latihanapimaplocation.helper.DatabaseHelper
 import com.rully.latihanapimaplocation.view.add.PlaceActivity
 
-class DetailActivity : AppCompatActivity() {
+class DetailActivity : AppCompatActivity(), View.OnClickListener {
 
     private lateinit var binding: ActivityDetailBinding
     private lateinit var dbHelper: DatabaseHelper
+    private lateinit var place: Place
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,13 +36,27 @@ class DetailActivity : AppCompatActivity() {
         binding.imgBtnMenu.setOnClickListener {
             showBottomDialog()
         }
+        place = intent.getParcelableExtra<Place>(EXTRA_PLACE) as Place
 
         getDetailData()
+        binding.ibSend.setOnClickListener(this)
 
     }
 
+    override fun onClick(p0: View?) {
+        when (p0?.id) {
+            R.id.ibSend -> {
+                val intent = Intent(Intent.ACTION_SEND)
+                intent.putExtra(Intent.EXTRA_TEXT, place.title)
+                intent.putExtra(Intent.EXTRA_STREAM, Uri.parse(place.image))
+                intent.type = "image/jpg"
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                startActivity(Intent.createChooser(intent, "Share images"))
+            }
+        }
+    }
+
     private fun getDetailData() {
-        val place = intent.getParcelableExtra<Place>(EXTRA_PLACE) as Place
         binding.apply {
             tvTitle.text = place.title
             tvLocation.text = place.location
@@ -58,6 +75,15 @@ class DetailActivity : AppCompatActivity() {
         val tvShare = dialog.findViewById<TextView>(R.id.tvShare)
         val tvEdit = dialog.findViewById<TextView>(R.id.tvEdit)
         val tvDelete = dialog.findViewById<TextView>(R.id.tvDelete)
+
+        tvShare?.setOnClickListener {
+            val intent = Intent(Intent.ACTION_SEND)
+            intent.putExtra(Intent.EXTRA_TEXT, place.title)
+            intent.putExtra(Intent.EXTRA_STREAM, Uri.parse(place.image))
+            intent.type = "image/jpg"
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            startActivity(Intent.createChooser(intent, "Share images"))
+        }
 
         tvEdit?.setOnClickListener {
             editData()
@@ -84,7 +110,7 @@ class DetailActivity : AppCompatActivity() {
         with(alertDialogBuilder) {
             setTitle(dialogTitle)
             setMessage(dialogMessage)
-            setPositiveButton("Ya") {_,_ ->
+            setPositiveButton("Ya") { _, _ ->
                 val place = intent.getParcelableExtra<Place>(EXTRA_PLACE)
                 if (place != null) {
                     dbHelper.delete(place)
@@ -92,7 +118,7 @@ class DetailActivity : AppCompatActivity() {
                 }
                 finish()
             }
-            setNegativeButton("Tidak") {dialog, _ -> dialog.cancel()}
+            setNegativeButton("Tidak") { dialog, _ -> dialog.cancel() }
         }
         val alertDialog = alertDialogBuilder.create()
         alertDialog.show()
@@ -105,4 +131,5 @@ class DetailActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_PLACE = "extra_place"
     }
+
 }
