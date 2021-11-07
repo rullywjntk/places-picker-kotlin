@@ -17,7 +17,7 @@
             android:background="#FF8A80"
             app:layout_constraintTop_toTopOf="parent">
 
-            <de.hdodenhof.circleimageview.CircleImageView
+            <ImageButton
                 android:id="@+id/imgBtnBack"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -51,8 +51,7 @@
                 android:textSize="12sp"
                 app:layout_constraintTop_toBottomOf="@id/tvDesc" />
 
-
-            <de.hdodenhof.circleimageview.CircleImageView
+            <ImageButton
                 android:id="@+id/imgBtnMenu"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

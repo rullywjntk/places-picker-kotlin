@@ -69,7 +69,7 @@ class PlaceActivity : AppCompatActivity(), View.OnClickListener {
                     Log.e("Save image: ", "Path : $saveImage")
                 }
 
-                binding?.ivLocation?.let { image ->
+                binding?.ivImage?.let { image ->
                     Glide.with(applicationContext)
                         .load(data?.data)
                         .centerCrop()
@@ -88,7 +88,7 @@ class PlaceActivity : AppCompatActivity(), View.OnClickListener {
                         Log.d("MyLogTag", "photo: $bitmap")
                         saveImage = saveImage(bitmap)
                         Log.e("Save image: ", "Path : $saveImage")
-                        binding?.ivLocation?.let {
+                        binding?.ivImage?.let {
                             Glide.with(applicationContext)
                                 .load(bitmap)
                                 .into(it)
@@ -115,6 +115,7 @@ class PlaceActivity : AppCompatActivity(), View.OnClickListener {
         }
 
         dbHelper = DatabaseHelper(this)
+        editData()
 
         dateSetListener = DatePickerDialog.OnDateSetListener { _, year, month, dayOfMonth ->
             calendar.set(Calendar.YEAR, year)
@@ -127,6 +128,7 @@ class PlaceActivity : AppCompatActivity(), View.OnClickListener {
         binding?.etDate?.setOnClickListener(this)
         binding?.addImage?.setOnClickListener(this)
         binding?.btnSave?.setOnClickListener(this)
+
     }
 
     override fun onClick(p0: View?) {
@@ -168,21 +170,52 @@ class PlaceActivity : AppCompatActivity(), View.OnClickListener {
                         showMessage("Please select image")
                     }
                     else -> {
-                        place = Place(0,title,saveImage.toString(),desc,date,location,mLat,mLon)
-                        dbHelper.insert(place!!)
-//                        place.let { place ->
-//                            place?.title = title
-////                            place?.image = saveImage?.toString()
-////                            place?.description = desc
-////                            place?.location = location
-////                            place?.date = date
-////                            place?.latitude = mLat
-////                            place?.longitude = mLon
-//                        }
-//                        dbHelper.insert(place as Place)
-                        showMessage("Added place successfully")
+                        place.let { place ->
+                            place?.title = title
+                            place?.image = saveImage.toString()
+                            place?.description = desc
+                            place?.date = date
+                            place?.location = location
+                            place?.latitude = mLat
+                            place?.longitude = mLon
+                        }
+                        if (isEdit) {
+                            dbHelper.update(place as Place)
+                            showMessage("Data has been updated")
+                            val intent = Intent(this, DetailActivity::class.java)
+                            intent.putExtra(DetailActivity.EXTRA_PLACE, place)
+                            startActivity(intent)
+                        } else {
+                            dbHelper.insert(place as Place)
+                            showMessage("Added place successfully")
+                        }
                         finish()
                     }
+                }
+            }
+        }
+    }
+
+    private fun editData() {
+        place = intent.getParcelableExtra(EXTRA_PLACE)
+        if (place != null) {
+            isEdit = true
+        } else {
+            place = Place()
+        }
+
+        if (isEdit) {
+            if (place != null) {
+                place?.let { place ->
+                    binding?.etTitle?.setText(place.title)
+                    binding?.tvActualLoc?.text = place.location
+                    binding?.ivImage?.let {
+                        Glide.with(this)
+                            .load(place.image)
+                            .into(it)
+                    }
+                    binding?.etDate?.setText(place.date)
+                    binding?.etDesc?.setText(place.description)
                 }
             }
         }
@@ -288,5 +321,6 @@ class PlaceActivity : AppCompatActivity(), View.OnClickListener {
 
     companion object {
         const val SAVE_DIRECTORY = "save_image"
+        const val EXTRA_PLACE = "extra_place"
     }
 }

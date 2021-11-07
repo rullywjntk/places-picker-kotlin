@@ -42,10 +42,8 @@ class MainActivity : AppCompatActivity() {
     private fun getData() {
         dbHelper.getAll().observe(this, { listPlace ->
             if (listPlace != null) {
-                binding.tvNoData.visibility = View.GONE
                 adapter.setList(listPlace)
-            } else {
-                binding.tvNoData.visibility = View.VISIBLE
+                tvNoData(false)
             }
         })
 
@@ -60,5 +58,13 @@ class MainActivity : AppCompatActivity() {
         val intent = Intent(this, DetailActivity::class.java)
         intent.putExtra(DetailActivity.EXTRA_PLACE, data)
         startActivity(intent)
+    }
+
+    private fun tvNoData(state: Boolean) {
+        if (state) {
+            binding.tvNoData.visibility = View.VISIBLE
+        } else {
+            binding.tvNoData.visibility = View.GONE
+        }
     }
 }
