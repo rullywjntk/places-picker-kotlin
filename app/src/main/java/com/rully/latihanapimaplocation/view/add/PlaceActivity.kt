@@ -10,9 +10,13 @@ import android.content.ContextWrapper
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
+import android.location.Location
+import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Looper
+import android.provider.ContactsContract.Directory.PACKAGE_NAME
 import android.provider.MediaStore
 import android.provider.Settings
 import android.util.Log
@@ -21,7 +25,12 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.bumptech.glide.Glide
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.Places.initialize
 import com.google.android.libraries.places.widget.Autocomplete
@@ -36,6 +45,7 @@ import com.rully.latihanapimaplocation.R
 import com.rully.latihanapimaplocation.data.Place
 import com.rully.latihanapimaplocation.databinding.ActivityAddBinding
 import com.rully.latihanapimaplocation.helper.DatabaseHelper
+import com.rully.latihanapimaplocation.utils.GetAddressFromLatLng
 import com.rully.latihanapimaplocation.view.detail.DetailActivity
 import java.io.File
 import java.io.FileOutputStream
@@ -43,6 +53,7 @@ import java.io.IOException
 import java.io.OutputStream
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 class PlaceActivity : AppCompatActivity(), View.OnClickListener {
 
@@ -58,6 +69,9 @@ class PlaceActivity : AppCompatActivity(), View.OnClickListener {
 
     private var mLat: Double = 0.0
     private var mLon: Double = 0.0
+
+    private lateinit var locationRequest: com.google.android.gms.location.LocationRequest
+    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
 
     @RequiresApi(Build.VERSION_CODES.P)
     val resultLauncher =
@@ -109,7 +123,7 @@ class PlaceActivity : AppCompatActivity(), View.OnClickListener {
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { map ->
             if (map.resultCode == Activity.RESULT_OK) {
                 val place = Autocomplete.getPlaceFromIntent(map.data!!)
-                binding.tvActualLoc.text = place.address
+                binding.tvLocation.text = place.address
                 mLat = place.latLng!!.latitude
                 mLon = place.latLng!!.longitude
             }
@@ -126,6 +140,8 @@ class PlaceActivity : AppCompatActivity(), View.OnClickListener {
         binding.toolbar.setNavigationOnClickListener {
             onBackPressed()
         }
+
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
 
         if (!Places.isInitialized()) {
             initialize(this, BuildConfig.GOOGLE_MAP_API_KEY)
@@ -145,7 +161,8 @@ class PlaceActivity : AppCompatActivity(), View.OnClickListener {
         binding.etDate.setOnClickListener(this)
         binding.addImage.setOnClickListener(this)
         binding.btnSave.setOnClickListener(this)
-        binding.tvLocation.setOnClickListener(this)
+        binding.tvLoc.setOnClickListener(this)
+        binding.tvSelectCurrentLocation.setOnClickListener(this)
 
     }
 
@@ -172,7 +189,7 @@ class PlaceActivity : AppCompatActivity(), View.OnClickListener {
                     }
                 }.show()
             }
-            R.id.tvLocation -> {
+            R.id.tvLoc -> {
                 try {
 //                    val autoCompleteFragment =
 //                        supportFragmentManager.findFragmentById(R.id.map) as AutocompleteSupportFragment
@@ -211,6 +228,32 @@ class PlaceActivity : AppCompatActivity(), View.OnClickListener {
                     mapLauncher.launch(intent)
                 } catch (e: Exception) {
                     e.printStackTrace()
+                }
+            }
+            R.id.tvSelectCurrentLocation -> {
+                if (!isLocationEnabled()) {
+                    showMessage("Please turn on your location provider")
+                    val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                    startActivity(intent)
+                } else {
+                    Dexter.withActivity(this).withPermissions(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    ).withListener(object : MultiplePermissionsListener {
+                        override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
+                            if (report!!.areAllPermissionsGranted()) {
+                                requestNewLocationData()
+                            }
+                        }
+
+                        override fun onPermissionRationaleShouldBeShown(
+                            permissions: MutableList<PermissionRequest>?,
+                            token: PermissionToken?
+                        ) {
+                            showRationalDialogPermissions()
+                        }
+
+                    })
                 }
             }
             R.id.btnSave -> {
@@ -260,7 +303,7 @@ class PlaceActivity : AppCompatActivity(), View.OnClickListener {
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == MAP_REQUEST_CODE) {
                 val place = Autocomplete.getPlaceFromIntent(data!!)
-                binding.tvActualLoc.text = place.address
+                binding.tvLocation.text = place.address
                 mLat = place.latLng!!.latitude
                 mLon = place.latLng!!.longitude
             }
@@ -279,7 +322,7 @@ class PlaceActivity : AppCompatActivity(), View.OnClickListener {
             if (place != null) {
                 place?.let { place ->
                     binding.etTitle.setText(place.title)
-                    binding.tvActualLoc.text = place.location
+                    binding.tvLocation.text = place.location
                     binding.ivImage.let {
                         Glide.with(this)
                             .load(place.image)
@@ -338,6 +381,56 @@ class PlaceActivity : AppCompatActivity(), View.OnClickListener {
         }).onSameThread().check()
     }
 
+    private fun requestNewLocationData() {
+        locationRequest = com.google.android.gms.location.LocationRequest.create().apply {
+            interval = TimeUnit.SECONDS.toMillis(60)
+            fastestInterval = TimeUnit.SECONDS.toMillis(30)
+            maxWaitTime = TimeUnit.MINUTES.toMillis(2)
+            priority = com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
+        }
+
+
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
+        try {
+            fusedLocationProviderClient.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                Looper.getMainLooper()
+            )
+        } catch (e: SecurityException) {
+            e.printStackTrace()
+        }
+    }
+
+    private val locationCallback = object : LocationCallback() {
+        override fun onLocationResult(location: LocationResult) {
+            val lastLocation: Location = location.lastLocation
+            mLat = lastLocation.latitude
+            Log.e("Current location", "$mLat")
+            mLon = lastLocation.longitude
+            Log.e("Current location", "$mLon")
+
+            val addressTask = GetAddressFromLatLng(this@PlaceActivity, mLat, mLon)
+            addressTask.setAddressListener(object : GetAddressFromLatLng.AddressListener {
+                override fun onAddressFound(address: String) {
+                    Log.e("Address ::", "" + address)
+                    binding.tvLocation.setText(address)
+                }
+
+                override fun onError() {
+                    showMessage("Something is wrong...")
+                    Log.e("Get Address ::", "Something is wrong...")
+                }
+
+            })
+            addressTask.getAddress()
+
+//            val intent = Intent(ACTION_FOREGROUND_ONLY_LOCATION_BROADCAST)
+//            intent.putExtra(EXTRA_LOCATION, lastLocation)
+//            LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
+        }
+    }
+
 
     private fun showRationalDialogPermissions() {
         AlertDialog.Builder(this)
@@ -385,10 +478,17 @@ class PlaceActivity : AppCompatActivity(), View.OnClickListener {
         return Uri.parse(file.absolutePath)
     }
 
+    private fun isLocationEnabled(): Boolean {
+        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(
+            LocationManager.NETWORK_PROVIDER
+        )
+    }
+
     companion object {
-        const val TAG = "place_activity"
         const val SAVE_DIRECTORY = "save_image"
         const val EXTRA_PLACE = "extra_place"
         const val MAP_REQUEST_CODE = 1
+
     }
 }
